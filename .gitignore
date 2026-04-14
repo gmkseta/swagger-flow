@@ -1,0 +1,16 @@
+node_modules/
+output/
+.output/
+.wxt/
+coverage/
+test-results/
+*.tsbuildinfo
+.DS_Store
+.omc/
+.serena/
+.env
+.env.local
+.auth-cache/
+CLAUDE.local.md
+.claude/
+apps/

@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#4f46e5"/>
+      <stop offset="100%" style="stop-color:#7c3aed"/>
+    </linearGradient>
+    <linearGradient id="bolt" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#fbbf24"/>
+      <stop offset="100%" style="stop-color:#f59e0b"/>
+    </linearGradient>
+    <filter id="shadow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="2" stdDeviation="3" flood-color="#0003"/>
+    </filter>
+  </defs>
+  <!-- Background rounded square -->
+  <rect x="4" y="4" width="120" height="120" rx="28" ry="28" fill="url(#bg)"/>
+  <!-- Subtle inner glow -->
+  <rect x="8" y="8" width="112" height="112" rx="24" ry="24" fill="none" stroke="white" stroke-opacity="0.15" stroke-width="2"/>
+  <!-- Flow lines (3 connected dots) -->
+  <g filter="url(#shadow)">
+    <!-- Line connecting dots -->
+    <path d="M32 85 L54 85 L64 65 L74 85 L96 85" fill="none" stroke="white" stroke-opacity="0.4" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+    <!-- Dots -->
+    <circle cx="32" cy="85" r="5" fill="white" fill-opacity="0.5"/>
+    <circle cx="64" cy="65" r="5" fill="white" fill-opacity="0.7"/>
+    <circle cx="96" cy="85" r="5" fill="white" fill-opacity="0.5"/>
+  </g>
+  <!-- Lightning bolt -->
+  <g filter="url(#shadow)">
+    <path d="M72 18 L52 58 L66 58 L56 108 L84 52 L68 52 Z" fill="url(#bolt)"/>
+    <path d="M72 18 L52 58 L66 58 L56 108 L84 52 L68 52 Z" fill="white" fill-opacity="0.3"/>
+  </g>
+</svg>

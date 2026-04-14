@@ -1,0 +1,249 @@
+<ac:structured-macro ac:name="html" ac:schema-version="1" ac:macro-id="f1fd9d2a-1b00-4452-8a61-dd5414d65361"><ac:plain-text-body><![CDATA[
+<div style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif; max-width:920px; margin:0 auto; color:#1a1a2e;">
+
+  <!-- Hero -->
+  <div style="background:linear-gradient(135deg,#4f46e5,#7c3aed); border-radius:16px; padding:48px 40px; color:white; text-align:center; margin-bottom:24px;">
+    <h1 style="font-size:36px; font-weight:800; margin:0 0 12px; color:white;">⚡ Swagger Flow</h1>
+    <p style="font-size:18px; opacity:0.9; margin:0; color:white;">Swagger UI / ReDoc 기반 API 워크플로우 자동화 Chrome Extension</p>
+    <span style="display:inline-block; background:rgba(255,255,255,0.2); border-radius:20px; padding:4px 14px; font-size:13px; margin-top:16px; color:white;">v1.3.0 · Chrome MV3 · Preact + TypeScript</span>
+  </div>
+
+  <!-- Tabs -->
+  <div style="display:flex; border-bottom:2px solid #e5e7eb; margin-bottom:24px; gap:0;" id="sf-tabs">
+    <div id="stab-intro" onclick="(function(el){document.querySelectorAll('[id^=stab-]').forEach(function(t){t.style.color='#6b7280';t.style.borderBottomColor='transparent';});el.style.color='#4f46e5';el.style.borderBottomColor='#4f46e5';document.querySelectorAll('[id^=spanel-]').forEach(function(p){p.style.display='none';});document.getElementById('spanel-intro').style.display='block';})(this)" style="padding:12px 24px; font-size:14px; font-weight:600; color:#4f46e5; cursor:pointer; border-bottom:3px solid #4f46e5; margin-bottom:-2px; user-select:none;">📖 소개</div>
+    <div id="stab-install" onclick="(function(el){document.querySelectorAll('[id^=stab-]').forEach(function(t){t.style.color='#6b7280';t.style.borderBottomColor='transparent';});el.style.color='#4f46e5';el.style.borderBottomColor='#4f46e5';document.querySelectorAll('[id^=spanel-]').forEach(function(p){p.style.display='none';});document.getElementById('spanel-install').style.display='block';})(this)" style="padding:12px 24px; font-size:14px; font-weight:600; color:#6b7280; cursor:pointer; border-bottom:3px solid transparent; margin-bottom:-2px; user-select:none;">📦 다운로드 &amp; 설치</div>
+    <div id="stab-template" onclick="(function(el){document.querySelectorAll('[id^=stab-]').forEach(function(t){t.style.color='#6b7280';t.style.borderBottomColor='transparent';});el.style.color='#4f46e5';el.style.borderBottomColor='#4f46e5';document.querySelectorAll('[id^=spanel-]').forEach(function(p){p.style.display='none';});document.getElementById('spanel-template').style.display='block';})(this)" style="padding:12px 24px; font-size:14px; font-weight:600; color:#6b7280; cursor:pointer; border-bottom:3px solid transparent; margin-bottom:-2px; user-select:none;">🔧 템플릿 변수 가이드</div>
+    <div id="stab-examples" onclick="(function(el){document.querySelectorAll('[id^=stab-]').forEach(function(t){t.style.color='#6b7280';t.style.borderBottomColor='transparent';});el.style.color='#4f46e5';el.style.borderBottomColor='#4f46e5';document.querySelectorAll('[id^=spanel-]').forEach(function(p){p.style.display='none';});document.getElementById('spanel-examples').style.display='block';})(this)" style="padding:12px 24px; font-size:14px; font-weight:600; color:#6b7280; cursor:pointer; border-bottom:3px solid transparent; margin-bottom:-2px; user-select:none;">💡 활용 예시</div>
+  </div>
+
+  <!-- Panel: 소개 -->
+  <div id="spanel-intro" style="display:block;">
+    <div style="margin-bottom:28px;">
+      <h2 style="font-size:20px; font-weight:700; color:#4f46e5; border-bottom:2px solid #e5e7eb; padding-bottom:8px; margin-bottom:14px;">주요 기능</h2>
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px;">
+        <div style="background:#f5f3ff; border:1px solid #ddd6fe; border-radius:12px; padding:18px;">
+          <div style="font-size:24px; margin-bottom:8px;">⚡</div>
+          <h3 style="font-size:15px; font-weight:700; margin:0 0 6px; color:#4f46e5;">멀티 스텝 실행</h3>
+          <p style="font-size:13px; color:#6b7280; margin:0;">여러 API를 순서대로 자동 실행. 이전 응답값을 다음 요청에 자동 바인딩</p>
+        </div>
+        <div style="background:#f0fdf4; border:1px solid #bbf7d0; border-radius:12px; padding:18px;">
+          <div style="font-size:24px; margin-bottom:8px;">🔗</div>
+          <h3 style="font-size:15px; font-weight:700; margin:0 0 6px; color:#059669;">템플릿 변수 시스템</h3>
+          <p style="font-size:13px; color:#6b7280; margin:0;"><code>{{step.1.data.id}}</code>, <code>{{env.TOKEN}}</code>, <code>{{$randomInt}}</code> 등 다양한 변수 지원</p>
+        </div>
+        <div style="background:#eff6ff; border:1px solid #bfdbfe; border-radius:12px; padding:18px;">
+          <div style="font-size:24px; margin-bottom:8px;">🧭</div>
+          <h3 style="font-size:15px; font-weight:700; margin:0 0 6px; color:#2563eb;">멀티 Swagger 감지</h3>
+          <p style="font-size:13px; color:#6b7280; margin:0;">하나의 Swagger UI 페이지에 여러 spec이 연결돼도 전부 수집해서 endpoint 선택 가능</p>
+        </div>
+        <div style="background:#fef3c7; border:1px solid #fde68a; border-radius:12px; padding:18px;">
+          <div style="font-size:24px; margin-bottom:8px;">📥</div>
+          <h3 style="font-size:15px; font-weight:700; margin:0 0 6px; color:#d97706;">히스토리 → 숏컷 변환</h3>
+          <p style="font-size:13px; color:#6b7280; margin:0;">히스토리에서 바로 숏컷 생성. host 포함 URL, path param, step output 연결을 자동 추론</p>
+        </div>
+        <div style="background:#fdf2f8; border:1px solid #fbcfe8; border-radius:12px; padding:18px;">
+          <div style="font-size:24px; margin-bottom:8px;">✏️</div>
+          <h3 style="font-size:15px; font-weight:700; margin:0 0 6px; color:#db2777;">Endpoint 직접 편집</h3>
+          <p style="font-size:13px; color:#6b7280; margin:0;">spec dropdown으로 선택하고, 필요하면 method/path를 바로 수정해서 custom endpoint로 실행</p>
+        </div>
+        <div style="background:#f0f9ff; border:1px solid #bae6fd; border-radius:12px; padding:18px;">
+          <div style="font-size:24px; margin-bottom:8px;">📋</div>
+          <h3 style="font-size:15px; font-weight:700; margin:0 0 6px; color:#0284c7;">Step Copy / Paste</h3>
+          <p style="font-size:13px; color:#6b7280; margin:0;">스텝 복사/붙여넣기, 이동, 삭제 시 <code>step.N</code> 참조를 자동 재정렬해서 플로우 유지</p>
+        </div>
+      </div>
+    </div>
+
+    
+  
+    <!-- Screenshots -->
+    <div style="margin-bottom:28px;">
+      <h2 style="font-size:20px; font-weight:700; color:#4f46e5; border-bottom:2px solid #e5e7eb; padding-bottom:8px; margin-bottom:14px;">스크린샷</h2>
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; max-width:920px;">
+        <div style="text-align:center;">
+          <img src="assets/shortcut-list.png" style="width:100%; border-radius:8px; border:1px solid #e2e8f0;" />
+          <p style="font-size:12px; color:#6b7280; margin-top:6px;">숏컷 목록</p>
+        </div>
+        <div style="text-align:center;">
+          <img src="assets/shortcut-editor.png" style="width:100%; border-radius:8px; border:1px solid #e2e8f0;" />
+          <p style="font-size:12px; color:#6b7280; margin-top:6px;">스텝 편집</p>
+        </div>
+        <div style="text-align:center;">
+          <img src="assets/history-list.png" style="width:100%; border-radius:8px; border:1px solid #e2e8f0;" />
+          <p style="font-size:12px; color:#6b7280; margin-top:6px;">실행 결과</p>
+        </div>
+        <div style="text-align:center;">
+          <img src="assets/history-detail.png" style="width:100%; border-radius:8px; border:1px solid #e2e8f0;" />
+          <p style="font-size:12px; color:#6b7280; margin-top:6px;">히스토리</p>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Panel: 다운로드 & 설치 -->
+  <div id="spanel-install" style="display:none;">
+    <div style="margin-bottom:28px;">
+      <h2 style="font-size:20px; font-weight:700; color:#4f46e5; border-bottom:2px solid #e5e7eb; padding-bottom:8px; margin-bottom:14px;">다운로드</h2>
+      <div style="display:flex; gap:12px; margin-bottom:16px;">
+        <a href="assets/swagger-flow.zip" style="display:inline-flex; align-items:center; gap:8px; background:#4f46e5; color:white; padding:12px 24px; border-radius:8px; font-weight:600; text-decoration:none; font-size:14px;">📦 swagger-flow.zip 다운로드</a>
+        <a href="assets/swagger-flow-shortcuts-2026-03-26-4items.json" style="display:inline-flex; align-items:center; gap:8px; background:#059669; color:white; padding:12px 24px; border-radius:8px; font-weight:600; text-decoration:none; font-size:14px;">📋 예제 숏컷 JSON 다운로드 (4개)</a>
+      </div>
+    </div>
+
+    <div style="margin-bottom:28px;">
+      <h2 style="font-size:20px; font-weight:700; color:#4f46e5; border-bottom:2px solid #e5e7eb; padding-bottom:8px; margin-bottom:14px;">설치 방법</h2>
+      <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:12px; padding:20px;">
+        <ol style="margin:0; padding-left:20px; font-size:14px; line-height:2;">
+          <li>위 버튼으로 <strong>swagger-flow.zip</strong> 다운로드</li>
+          <li>압축 해제 (폴더가 생김)</li>
+          <li>Chrome에서 <code style="background:#e2e8f0; padding:2px 6px; border-radius:4px;">chrome://extensions</code> 접속</li>
+          <li>우측 상단 <strong>개발자 모드</strong> 활성화</li>
+          <li><strong>압축해제된 확장 프로그램을 로드합니다</strong> 클릭</li>
+          <li>압축 해제한 폴더 선택</li>
+          <li>Swagger UI 페이지에서 사이드패널 자동 활성화 ✅</li>
+        </ol>
+      </div>
+    </div>
+
+    <div style="margin-bottom:28px;">
+      <h2 style="font-size:20px; font-weight:700; color:#4f46e5; border-bottom:2px solid #e5e7eb; padding-bottom:8px; margin-bottom:14px;">예제 숏컷 Import</h2>
+      <div style="background:#f0fdf4; border:1px solid #bbf7d0; border-radius:12px; padding:20px;">
+        <ol style="margin:0; padding-left:20px; font-size:14px; line-height:2;">
+          <li>위 <strong>예제 숏컷 JSON</strong> 다운로드</li>
+          <li>Swagger Flow 사이드패널 → <strong>Shortcuts</strong> 탭</li>
+          <li><strong>Import</strong> 버튼 클릭 → JSON 파일 선택</li>
+          <li>바로고 기사수행 예제 4개 자동 추가</li>
+        </ol>
+        <p style="font-size:13px; color:#059669; margin:12px 0 0;">포함된 예제: 통합오더 도보기사 수행 (퀵 host 조합), 일반오더 도보기사 수행, 일반오더 퀵기사 수행, 통합오더 퀵기사 수행</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Panel: 템플릿 변수 가이드 -->
+  <div id="spanel-template" style="display:none;">
+    <div style="margin-bottom:28px;">
+      <h2 style="font-size:20px; font-weight:700; color:#4f46e5; border-bottom:2px solid #e5e7eb; padding-bottom:8px; margin-bottom:14px;">템플릿 변수 종류</h2>
+
+      <h3 style="font-size:16px; font-weight:600; color:#374151; margin:14px 0 8px;">1. 환경변수 — <code style="background:#f5f3ff; padding:2px 8px; border-radius:4px; color:#7c3aed;">{{env.변수명}}</code></h3>
+      <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px; padding:14px; margin-bottom:16px;">
+        <p style="font-size:13px; margin:0 0 8px; color:#64748b;">Env 탭에서 설정한 값을 참조합니다.</p>
+        <code style="display:block; background:#1e293b; color:#e2e8f0; padding:12px; border-radius:6px; font-size:13px;">{{env.BASE_URL}}/api/v1/users<br/>Header: Authorization: Bearer {{env.TOKEN}}<br/>Header: x-flexer-accountid: {{env.FLEXER_ID}}</code>
+      </div>
+
+      <h3 style="font-size:16px; font-weight:600; color:#374151; margin:14px 0 8px;">2. 스텝 참조 — <code style="background:#f0fdf4; padding:2px 8px; border-radius:4px; color:#059669;">{{step.N.경로}}</code></h3>
+      <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px; padding:14px; margin-bottom:16px;">
+        <p style="font-size:13px; margin:0 0 8px; color:#64748b;">이전 스텝의 응답에서 추출한 값을 참조합니다.</p>
+        <code style="display:block; background:#1e293b; color:#e2e8f0; padding:12px; border-radius:6px; font-size:13px;">{{step.1.data.id}} → 스텝1 응답의 data.id<br/>{{step.2.orderId}} → 스텝2에서 추출한 orderId<br/>{{step.1.data.items.0.name}} → 배열 첫번째 요소</code>
+      </div>
+
+      <h3 style="font-size:16px; font-weight:600; color:#374151; margin:14px 0 8px;">3. Bare 변수 — <code style="background:#fef3c7; padding:2px 8px; border-radius:4px; color:#d97706;">{{변수명}}</code></h3>
+      <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px; padding:14px; margin-bottom:16px;">
+        <p style="font-size:13px; margin:0 0 8px; color:#64748b;">이전 스텝에서 추출한 값을 이름만으로 참조. 가장 최근 스텝부터 역순 탐색합니다.</p>
+        <code style="display:block; background:#1e293b; color:#e2e8f0; padding:12px; border-radius:6px; font-size:13px;">URL: /orders/{{orderId}}/accept<br/>Body: {"income_amount": {{income_amount}}}<br/>Header: x-flexer-accountid: {{FLEXER_ID}}</code>
+        <p style="font-size:12px; margin:8px 0 0; color:#92400e;">💡 env 변수와 이전 스텝 추출값 모두 자동 탐색됩니다.</p>
+      </div>
+
+      <h3 style="font-size:16px; font-weight:600; color:#374151; margin:14px 0 8px;">4. 랜덤 생성기 — <code style="background:#fdf2f8; padding:2px 8px; border-radius:4px; color:#db2777;">{{$generator}}</code></h3>
+      <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px; padding:14px; margin-bottom:16px;">
+        <table style="width:100%; font-size:13px; border-collapse:collapse;">
+          <tr style="border-bottom:1px solid #e2e8f0;"><td style="padding:6px 0; font-family:monospace; color:#db2777;">{{$randomInt(1,100)}}</td><td style="padding:6px 12px;">범위 내 랜덤 정수</td></tr>
+          <tr style="border-bottom:1px solid #e2e8f0;"><td style="padding:6px 0; font-family:monospace; color:#db2777;">{{$randomString(8)}}</td><td style="padding:6px 12px;">N자리 랜덤 문자열</td></tr>
+          <tr style="border-bottom:1px solid #e2e8f0;"><td style="padding:6px 0; font-family:monospace; color:#db2777;">{{$randomEmail}}</td><td style="padding:6px 12px;">랜덤 이메일</td></tr>
+          <tr style="border-bottom:1px solid #e2e8f0;"><td style="padding:6px 0; font-family:monospace; color:#db2777;">{{$uuid}}</td><td style="padding:6px 12px;">UUID v4</td></tr>
+          <tr><td style="padding:6px 0; font-family:monospace; color:#db2777;">{{$timestamp}}</td><td style="padding:6px 12px;">현재 Unix 타임스탬프</td></tr>
+        </table>
+      </div>
+
+      <h3 style="font-size:16px; font-weight:600; color:#374151; margin:14px 0 8px;">5. 배열 필터 추출 — <code style="background:#eff6ff; padding:2px 8px; border-radius:4px; color:#2563eb;">array[?조건].필드</code></h3>
+      <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px; padding:14px;">
+        <p style="font-size:13px; margin:0 0 8px; color:#64748b;">Extractor path에서 배열 내 조건 매칭으로 값 추출.</p>
+        <code style="display:block; background:#1e293b; color:#e2e8f0; padding:12px; border-radius:6px; font-size:13px;">orders[?vendor.vendor_order_id=={{step.1.doboOrderId}}].open_order_id<br/>orders[?status==ACTIVE].id<br/>items[?type==FOOD].name</code>
+        <p style="font-size:12px; margin:8px 0 0; color:#1d4ed8;">💡 중첩 필드 접근(vendor.vendor_order_id)과 템플릿 변수 조합 가능</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Panel: 활용 예시 -->
+  <div id="spanel-examples" style="display:none;">
+    <div style="margin-bottom:28px;">
+      <h2 style="font-size:20px; font-weight:700; color:#4f46e5; border-bottom:2px solid #e5e7eb; padding-bottom:8px; margin-bottom:14px;">활용 예시</h2>
+
+      <h3 style="font-size:16px; font-weight:600; color:#374151; margin:14px 0 8px;">예시 1: 바로고 통합오더 도보기사 수행 (퀵 host 조합)</h3>
+      <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:12px; padding:16px; margin-bottom:20px;">
+        <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap; font-size:13px;">
+          <span style="background:#4f46e5; color:white; padding:4px 10px; border-radius:6px; font-weight:600;">Step 1</span>
+          <span>POST 오더 생성</span>
+          <span style="color:#9ca3af;">→</span>
+          <span style="background:#d97706; color:white; padding:4px 10px; border-radius:6px; font-weight:600;">Sleep</span>
+          <span>1초 대기</span>
+          <span style="color:#9ca3af;">→</span>
+          <span style="background:#059669; color:white; padding:4px 10px; border-radius:6px; font-weight:600;">Step 3</span>
+          <span>오더 조회 (retry 5회)</span>
+          <span style="color:#9ca3af;">→</span>
+          <span style="background:#2563eb; color:white; padding:4px 10px; border-radius:6px; font-weight:600;">Step 4</span>
+          <span>오더 수락</span>
+          <span style="color:#9ca3af;">→</span>
+          <span style="background:#7c3aed; color:white; padding:4px 10px; border-radius:6px; font-weight:600;">Step 5</span>
+          <span>픽업 스타트</span>
+          <span style="color:#9ca3af;">→</span>
+          <span style="background:#db2777; color:white; padding:4px 10px; border-radius:6px; font-weight:600;">Step 6</span>
+          <span>픽업 완료</span>
+          <span style="color:#9ca3af;">→</span>
+          <span style="background:#0f766e; color:white; padding:4px 10px; border-radius:6px; font-weight:600;">Step 7</span>
+          <span>배송 완료</span>
+        </div>
+        <div style="margin-top:12px; font-size:12px; color:#64748b;">
+          <strong>핵심:</strong> GOA에서 통합오더 생성 → quick 공유 대기 → vendor_order_id 기준으로 오더 조회 → orderId, income_amount, stepId1, stepId2를 추출해서 quick host의 DOBO order-service 플로우로 이어서 수행
+        </div>
+      </div>
+
+      <h3 style="font-size:16px; font-weight:600; color:#374151; margin:14px 0 8px;">예시 2: 히스토리 Import 후 endpoint 직접 수정</h3>
+      <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:12px; padding:16px; margin-bottom:20px;">
+        <code style="display:block; background:#1e293b; color:#e2e8f0; padding:14px; border-radius:6px; font-size:13px; line-height:1.6;">
+History 탭: Execute 결과 선택 → Convert to Shortcut<br/>
+<br/>
+Step 1: GET [Internal] /orders/{orderId}<br/>
+&nbsp;&nbsp;드롭다운으로 endpoint 선택<br/>
+<br/>
+Step 2: Path 직접 수정<br/>
+&nbsp;&nbsp;/orders/{orderId}/steps/{stepId1}/start<br/>
+<br/>
+Step 3: Copy / Paste로 finish step 복제<br/>
+&nbsp;&nbsp;step.2.stepId1 → step.2.stepId2 로 수정
+        </code>
+        <p style="font-size:12px; margin:8px 0 0; color:#64748b;">💡 spec endpoint를 고른 뒤에도 method/path를 직접 수정할 수 있고, step 복붙 시 참조도 같이 재정렬됩니다.</p>
+      </div>
+
+      <h3 style="font-size:16px; font-weight:600; color:#374151; margin:14px 0 8px;">예시 3: Env 변수 활용</h3>
+      <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:12px; padding:16px; margin-bottom:20px;">
+        <code style="display:block; background:#1e293b; color:#e2e8f0; padding:14px; border-radius:6px; font-size:13px; line-height:1.6;">
+Env 설정:<br/>
+&nbsp;&nbsp;BASE_URL = http://alpha.api.example.com<br/>
+&nbsp;&nbsp;FLEXER_ID = FL_ABC123<br/>
+&nbsp;&nbsp;TOKEN = eyJhbGci...<br/>
+<br/>
+Step 1: PUT {{env.BASE_URL}}/orders/{{orderId}}/accept<br/>
+&nbsp;&nbsp;Header: Authorization: Bearer {{env.TOKEN}}<br/>
+&nbsp;&nbsp;Header: x-flexer-accountid: {{env.FLEXER_ID}}
+        </code>
+        <p style="font-size:12px; margin:8px 0 0; color:#64748b;">💡 Bare 변수 {{FLEXER_ID}}도 env에서 자동 탐색됩니다.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Changelog -->
+  <div style="margin-top:24px; padding:20px; background:#f0fdf4; border:1px solid #86efac; border-radius:12px;">
+    <h3 style="margin:0 0 12px; color:#166534;">📋 Changelog — v1.3.0 (2026-03-26)</h3>
+    <ul style="margin:0; padding-left:20px; color:#15803d; font-size:14px; line-height:1.8;">
+      <li><strong>멀티 Swagger 지원</strong> — 하나의 Swagger UI 페이지에 연결된 여러 spec을 모두 감지하고 endpoint를 통합 표시</li>
+      <li><strong>Endpoint 직접 편집</strong> — spec dropdown으로 선택한 뒤 method/path를 그대로 수정해서 custom endpoint 실행 가능</li>
+      <li><strong>Step Copy / Paste</strong> — 숏컷 내부 step 복사/붙여넣기 추가, move/remove/import 시 <code>step.N</code> 참조 자동 재정렬</li>
+      <li><strong>히스토리 → 숏컷 개선</strong> — host 포함 import 기본값, opaque ID path param 추론, step output 기반 path 변수화</li>
+      <li><strong>Analytics 필터링 확장</strong> — <code>POST /events/*</code>, <code>POST /jserrors/*</code> 류 요청을 히스토리에서 자동 제외</li>
+      <li><strong>예제 숏컷 갱신</strong> — <code>swagger-flow-shortcuts-2026-03-26-4items.json</code> 기준으로 바로고 기사수행 4개 예제 업데이트</li>
+    </ul>
+  </div>
+
+</div>
+]]></ac:plain-text-body></ac:structured-macro>
