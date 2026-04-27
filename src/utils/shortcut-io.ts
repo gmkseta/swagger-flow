@@ -25,6 +25,7 @@ export interface ExportData {
 export interface ExportedShortcut {
   name: string;
   description?: string;
+  directory?: string;
   specUrl: string;
   steps: ShortcutStep[];
   createdAt: number;
@@ -160,6 +161,7 @@ export function parseImportData(jsonString: string): ImportResult {
     shortcuts.push({
       name: raw.name,
       description: raw.description || undefined,
+      directory: typeof raw.directory === 'string' ? raw.directory : undefined,
       specUrl: raw.specUrl || '',
       steps: result.steps,
       createdAt: raw.createdAt || now,
@@ -224,6 +226,7 @@ function validateShortcut(raw: any, index: number): ValidateResult {
         sleepMs: typeof step.sleepMs === 'number' ? step.sleepMs : 1000,
         title: typeof step.title === 'string' ? step.title : undefined,
         description: typeof step.description === 'string' ? step.description : undefined,
+        optional: step.optional === true ? true : undefined,
       });
       continue;
     }
@@ -287,6 +290,7 @@ function validateShortcut(raw: any, index: number): ValidateResult {
     steps.push({
       order: j + 1,
       stepType: step.stepType === 'sleep' ? 'sleep' : 'request',
+      optional: step.optional === true ? true : undefined,
       endpointMethod: step.endpointMethod.toUpperCase(),
       endpointPath: step.endpointPath,
       endpointSpecName: typeof step.endpointSpecName === 'string' ? step.endpointSpecName : undefined,

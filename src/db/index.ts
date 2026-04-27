@@ -1,5 +1,6 @@
 import Dexie, { type EntityTable } from 'dexie';
 import { encryptFields, decryptFields, isEncryptionReady } from '../utils/crypto';
+import { getDirectoryKey, normalizeDirectoryName } from '../utils/directories';
 
 // --- Data Models ---
 
@@ -39,6 +40,7 @@ export interface Shortcut {
   id?: number;
   name: string;
   description?: string;
+  directory?: string;
   specUrl: string;
   steps: ShortcutStep[];
   createdAt: number;
@@ -46,11 +48,19 @@ export interface Shortcut {
   _encrypted?: string;
 }
 
+export interface ShortcutDirectory {
+  id?: number;
+  name: string;
+  createdAt: number;
+  updatedAt: number;
+}
+
 export interface ShortcutStep {
   order: number;
   stepType?: 'request' | 'sleep'; // default: 'request'
   title?: string;
   description?: string;
+  optional?: boolean; // when true, failed step is downgraded to skipped and execution continues
   endpointMethod: string;
   endpointPath: string;
   endpointSpecName?: string;
@@ -148,6 +158,7 @@ const SPEC_SENSITIVE: (keyof SwaggerSpec)[] = ['spec', 'endpoints'];
 const db = new Dexie('SwaggerFlowDB') as Dexie & {
   specs: EntityTable<SwaggerSpec, 'id'>;
   shortcuts: EntityTable<Shortcut, 'id'>;
+  directories: EntityTable<ShortcutDirectory, 'id'>;
   history: EntityTable<ExecutionHistory, 'id'>;
 };
 
@@ -161,6 +172,14 @@ db.version(1).stores({
 db.version(2).stores({
   specs: '++id, url, detectedAt',
   shortcuts: '++id, name, specUrl, updatedAt',
+  history: '++id, shortcutId, startedAt, status',
+});
+
+// v3: add shortcut directory support
+db.version(3).stores({
+  specs: '++id, url, detectedAt',
+  shortcuts: '++id, name, directory, specUrl, updatedAt',
+  directories: '++id, name, updatedAt',
   history: '++id, shortcutId, startedAt, status',
 });
 
@@ -241,6 +260,32 @@ export const encDb = {
     async orderBy(field: string) {
       const records = await (db.shortcuts.orderBy(field) as any).reverse().toArray();
       return decryptArray(records, SHORTCUT_SENSITIVE);
+    },
+  },
+  directories: {
+    add: (record: Omit<ShortcutDirectory, 'id'>) =>
+      db.directories.add({
+        ...record,
+        name: normalizeDirectoryName(record.name),
+      } as ShortcutDirectory),
+    async ensure(name: string) {
+      const normalized = normalizeDirectoryName(name);
+      if (!normalized) return undefined;
+
+      const all = await db.directories.toArray();
+      const existing = all.find((directory) => getDirectoryKey(directory.name) === getDirectoryKey(normalized));
+      if (existing?.id) return existing.id;
+
+      const now = Date.now();
+      return db.directories.add({
+        name: normalized,
+        createdAt: now,
+        updatedAt: now,
+      });
+    },
+    delete: (id: number) => db.directories.delete(id),
+    async toArray() {
+      return db.directories.orderBy('name').toArray();
     },
   },
   history: {

@@ -12,6 +12,7 @@ function makeShortcut(overrides: Partial<Shortcut> = {}): Shortcut {
     id: 1,
     name: 'Test Shortcut',
     description: 'A test shortcut',
+    directory: 'Team/Alpha',
     specUrl: 'https://api.example.com/swagger.json',
     steps: [
       {
@@ -120,7 +121,7 @@ describe('parseImportData', () => {
       expect(result.shortcuts[0].steps[0].extractors).toEqual([{ name: 'userId', path: 'data.id' }]);
     });
 
-    it('parses valid assertions', () => {
+  it('parses valid assertions', () => {
       const json = JSON.stringify({
         name: 'with-assertions',
         steps: [{
@@ -140,6 +141,29 @@ describe('parseImportData', () => {
       expect(step.assertions).toHaveLength(2);
       expect(step.assertions![0]).toEqual({ name: 'has count', path: 'today.count', op: 'exists' });
       expect(step.assertions![1]).toEqual({ path: 'income', op: 'gt', value: 0, severity: 'warn' });
+    });
+
+    it('preserves optional step flag', () => {
+      const json = JSON.stringify({
+        name: 'optional-step',
+        steps: [{
+          endpointMethod: 'GET',
+          endpointPath: '/test',
+          parameterBindings: {},
+          extractors: [],
+          optional: true,
+        }],
+      });
+      const result = parseImportData(json);
+      expect(result.success).toBe(true);
+      expect(result.shortcuts[0].steps[0].optional).toBe(true);
+    });
+
+    it('preserves directory metadata', () => {
+      const json = exportToJson([makeShortcut()]);
+      const result = parseImportData(json);
+      expect(result.success).toBe(true);
+      expect(result.shortcuts[0].directory).toBe('Team/Alpha');
     });
 
     it('skips invalid assertions with warning', () => {

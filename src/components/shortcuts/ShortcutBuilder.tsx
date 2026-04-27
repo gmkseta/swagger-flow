@@ -5,17 +5,27 @@ import { StepCard } from './StepCard';
 import { TemplateHelp } from './TemplateHelp';
 import { historyToShortcut } from '../../utils/shortcut-convert';
 import { offsetImportedSteps, reindexMutatedSteps } from '../../utils/step-references';
+import { normalizeDirectoryName } from '../../utils/directories';
 
 interface Props {
   shortcut?: Shortcut;
+  initialDirectory?: string | null;
+  availableDirectories?: string[];
   onSave: () => void;
   onCancel: () => void;
 }
 
-export function ShortcutBuilder({ shortcut, onSave, onCancel }: Props) {
+export function ShortcutBuilder({
+  shortcut,
+  initialDirectory,
+  availableDirectories = [],
+  onSave,
+  onCancel,
+}: Props) {
   const { spec } = useSpec();
   const [name, setName] = useState(shortcut?.name || '');
   const [description, setDescription] = useState(shortcut?.description || '');
+  const [directory, setDirectory] = useState(shortcut?.directory || initialDirectory || '');
   const [steps, setSteps] = useState<ShortcutStep[]>(shortcut?.steps || []);
   const [copiedStep, setCopiedStep] = useState<ShortcutStep | null>(null);
   const [codeView, setCodeView] = useState(false);
@@ -191,6 +201,10 @@ export function ShortcutBuilder({ shortcut, onSave, onCancel }: Props) {
     }
 
     const now = Date.now();
+    const normalizedDirectory = normalizeDirectoryName(directory);
+    if (normalizedDirectory) {
+      await encDb.directories.ensure(normalizedDirectory);
+    }
 
     // Save endpointPath with host included by default when a spec origin is known,
     // so shortcuts remain runnable from contexts without a loaded spec.
@@ -209,6 +223,7 @@ export function ShortcutBuilder({ shortcut, onSave, onCancel }: Props) {
     const data: Omit<Shortcut, 'id'> = {
       name: name.trim(),
       description: description.trim() || undefined,
+      directory: normalizedDirectory || undefined,
       specUrl: spec?.url || '',
       steps: stepsWithHost,
       createdAt: shortcut?.createdAt || now,
@@ -252,6 +267,26 @@ export function ShortcutBuilder({ shortcut, onSave, onCancel }: Props) {
           placeholder="Description (optional)"
           class="w-full px-2 py-1.5 border border-gray-200 rounded-md text-xs text-gray-600 focus:ring-1 focus:ring-indigo-400"
         />
+        <div>
+          <input
+            type="text"
+            value={directory}
+            onInput={(e) => setDirectory((e.target as HTMLInputElement).value)}
+            placeholder="Directory (optional)"
+            list="shortcut-directory-options"
+            class="w-full px-2 py-1.5 border border-gray-200 rounded-md text-xs text-gray-600 focus:ring-1 focus:ring-indigo-400"
+          />
+          {availableDirectories.length > 0 && (
+            <datalist id="shortcut-directory-options">
+              {availableDirectories.map((item) => (
+                <option key={item} value={item} />
+              ))}
+            </datalist>
+          )}
+          <p class="mt-1 text-[10px] text-gray-400">
+            Leave blank for root. Use `/` if you want a path-like label.
+          </p>
+        </div>
       </div>
 
       {/* Toggle */}

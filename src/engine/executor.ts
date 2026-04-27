@@ -229,6 +229,13 @@ export async function executeShortcut(
       }
     }
 
+    if (stepResult.status === 'failed' && step.optional) {
+      stepResult.status = 'skipped';
+      stepResult.error = stepResult.error
+        ? `Optional step skipped: ${stepResult.error}`
+        : 'Optional step skipped';
+    }
+
     stepResult.completedAt = Date.now();
     onStepUpdate(i, { ...stepResult });
 
