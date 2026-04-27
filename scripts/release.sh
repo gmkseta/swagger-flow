@@ -38,6 +38,13 @@ if [[ "$DRY_RUN" == "0" ]]; then
   command -v gh >/dev/null 2>&1 || { echo "ERROR: 'gh' (GitHub CLI) not found"; exit 1; }
 fi
 
+# --- Pre-flight (before bumping so the script's own bump doesn't trip the check) ---
+if [[ "$DRY_RUN" == "0" ]]; then
+  if ! git diff --quiet || ! git diff --cached --quiet; then
+    echo "ERROR: working tree is dirty. Commit or stash first." >&2; exit 1
+  fi
+fi
+
 # --- Version bump (optional) ---
 if [[ -n "$OVERRIDE_VERSION" ]]; then
   echo "→ Bumping package.json version to $OVERRIDE_VERSION"
@@ -50,14 +57,8 @@ VERSION="$(jq -r .version package.json)"
 TAG="v$VERSION"
 echo "→ Version: $VERSION (tag: $TAG)"
 
-# --- Pre-flight ---
-if [[ "$DRY_RUN" == "0" ]]; then
-  if ! git diff --quiet || ! git diff --cached --quiet; then
-    echo "ERROR: working tree is dirty. Commit or stash first." >&2; exit 1
-  fi
-  if git rev-parse "$TAG" >/dev/null 2>&1; then
-    echo "ERROR: tag $TAG already exists" >&2; exit 1
-  fi
+if [[ "$DRY_RUN" == "0" ]] && git rev-parse "$TAG" >/dev/null 2>&1; then
+  echo "ERROR: tag $TAG already exists" >&2; exit 1
 fi
 
 # --- Build & test ---
