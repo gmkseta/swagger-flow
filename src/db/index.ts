@@ -58,9 +58,39 @@ export interface ShortcutStep {
   headerOverrides?: Record<string, string>;
   bodyTemplate?: string;
   extractors: Extractor[];
+  assertions?: Assertion[];
   sleepMs?: number; // milliseconds to wait (for sleep steps)
   maxRetries?: number; // auto-retry on failure (default: 0)
   retryDelayMs?: number; // delay between retries (default: 1000)
+}
+
+export type AssertionOp =
+  | 'exists'
+  | 'notExists'
+  | 'equals'
+  | 'notEquals'
+  | 'contains'
+  | 'gt'
+  | 'lt'
+  | 'matches';
+
+export interface Assertion {
+  name?: string;
+  path: string; // same dot-notation as Extractor.path
+  op: AssertionOp;
+  value?: unknown; // omitted for exists/notExists
+  severity?: 'error' | 'warn'; // default 'error'
+}
+
+export interface AssertionResult {
+  name?: string;
+  path: string;
+  op: AssertionOp;
+  expected?: unknown;
+  actual: unknown;
+  passed: boolean;
+  severity: 'error' | 'warn';
+  message?: string;
 }
 
 export interface BindingSource {
@@ -102,6 +132,7 @@ export interface StepResult {
     body: any;
   };
   extractedValues?: Record<string, any>;
+  assertionResults?: AssertionResult[];
   error?: string;
   startedAt?: number;
   completedAt?: number;

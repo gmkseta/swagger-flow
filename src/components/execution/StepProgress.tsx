@@ -127,6 +127,35 @@ export function StepProgress({ step, result, index, canRetry, onRetry, canRunSin
             </div>
           )}
 
+          {/* Assertions */}
+          {result.assertionResults && result.assertionResults.length > 0 && (
+            <div>
+              <span class="text-[10px] font-medium text-purple-700 uppercase">Assertions</span>
+              <div class="bg-white rounded p-2 mt-1 space-y-1 font-mono text-[11px]">
+                {result.assertionResults.map((a, i) => {
+                  const icon = a.passed ? '✓' : a.severity === 'warn' ? '⚠' : '✗';
+                  const color = a.passed
+                    ? 'text-green-600'
+                    : a.severity === 'warn'
+                    ? 'text-amber-600'
+                    : 'text-red-600';
+                  const label = a.name || a.path;
+                  const opLabel = a.op + (a.expected !== undefined ? ` ${JSON.stringify(a.expected)}` : '');
+                  return (
+                    <div key={i} class="flex gap-2 items-start">
+                      <span class={`${color} font-bold`}>{icon}</span>
+                      <span class="text-indigo-600 font-medium truncate">{label}</span>
+                      <span class="text-gray-400">{opLabel}</span>
+                      {!a.passed && a.message && (
+                        <span class={`${color} truncate`}>— {a.message}</span>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
           {/* Error */}
           {result.error && (
             <div class="bg-red-100 text-red-700 rounded p-2 text-[11px]">

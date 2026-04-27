@@ -1,7 +1,18 @@
 // Shortcut Export/Import utilities
 // Handles serialization, validation, and file I/O for shortcuts
 
-import type { Shortcut, ShortcutStep, BindingSource, Extractor } from '../db';
+import type { Shortcut, ShortcutStep, BindingSource, Extractor, Assertion, AssertionOp } from '../db';
+
+const VALID_ASSERTION_OPS: AssertionOp[] = [
+  'exists',
+  'notExists',
+  'equals',
+  'notEquals',
+  'contains',
+  'gt',
+  'lt',
+  'matches',
+];
 
 // --- Export Format ---
 
@@ -252,6 +263,27 @@ function validateShortcut(raw: any, index: number): ValidateResult {
       }
     }
 
+    // Validate assertions
+    const assertions: Assertion[] = [];
+    if (Array.isArray(step.assertions)) {
+      for (const a of step.assertions) {
+        if (
+          a &&
+          typeof a.path === 'string' &&
+          typeof a.op === 'string' &&
+          (VALID_ASSERTION_OPS as string[]).includes(a.op)
+        ) {
+          const out: Assertion = { path: a.path, op: a.op as AssertionOp };
+          if (typeof a.name === 'string') out.name = a.name;
+          if ('value' in a) out.value = a.value;
+          if (a.severity === 'warn' || a.severity === 'error') out.severity = a.severity;
+          assertions.push(out);
+        } else {
+          warnings.push(`${stepPrefix}: Skipped invalid assertion.`);
+        }
+      }
+    }
+
     steps.push({
       order: j + 1,
       stepType: step.stepType === 'sleep' ? 'sleep' : 'request',
@@ -262,6 +294,7 @@ function validateShortcut(raw: any, index: number): ValidateResult {
       headerOverrides: step.headerOverrides || undefined,
       bodyTemplate: step.bodyTemplate || undefined,
       extractors,
+      assertions: assertions.length > 0 ? assertions : undefined,
       title: typeof step.title === 'string' ? step.title : undefined,
       description: typeof step.description === 'string' ? step.description : undefined,
       maxRetries: typeof step.maxRetries === 'number' ? step.maxRetries : undefined,

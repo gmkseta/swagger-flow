@@ -2,6 +2,7 @@ import type { ComponentChildren } from 'preact';
 import { useSpec } from '../../hooks/useSpec';
 import { EnvSwitcher } from '../env/EnvSwitcher';
 import { useAuthProvider } from '../../hooks/useAuthProvider';
+import { UpdateBanner } from './UpdateBanner';
 
 export function Shell({ children }: { children: ComponentChildren }) {
   const { spec, loading } = useSpec();
@@ -60,6 +61,9 @@ export function Shell({ children }: { children: ComponentChildren }) {
           <EnvSwitcher />
         </div>
       </header>
+
+      {/* Update Banner */}
+      <UpdateBanner />
 
       {/* Spec Banner */}
       {loading && (

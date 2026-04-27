@@ -10,7 +10,10 @@ export type MessageType =
   | 'SWAGGER_REQUEST_CAPTURED'
   | 'AUTH_LOGIN'
   | 'AUTH_LOGOUT'
-  | 'AUTH_GET_STATUS';
+  | 'AUTH_GET_STATUS'
+  | 'GET_UPDATE_INFO'
+  | 'TRIGGER_UPDATE_CHECK'
+  | 'DISMISS_UPDATE';
 
 export interface Message<T = any> {
   type: MessageType;

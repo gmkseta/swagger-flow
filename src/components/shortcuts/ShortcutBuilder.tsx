@@ -150,20 +150,45 @@ export function ShortcutBuilder({ shortcut, onSave, onCancel }: Props) {
     setSteps(reindexSteps(newSteps));
   }
 
+  function commitCodeText(): { ok: true; steps: ShortcutStep[] } | { ok: false; error: string } {
+    try {
+      const parsed = JSON.parse(codeText);
+      if (!Array.isArray(parsed)) return { ok: false, error: 'JSON은 배열이어야 합니다' };
+      return { ok: true, steps: parsed as ShortcutStep[] };
+    } catch (e) {
+      return { ok: false, error: `JSON 파싱 실패: ${(e as Error).message}` };
+    }
+  }
+
   function toggleCodeView() {
     if (!codeView) {
       setCodeText(JSON.stringify(steps, null, 2));
-    } else {
-      try {
-        const parsed = JSON.parse(codeText);
-        if (Array.isArray(parsed)) setSteps(parsed);
-      } catch { /* keep current steps if JSON invalid */ }
+      setCodeView(true);
+      return;
     }
-    setCodeView(!codeView);
+    const result = commitCodeText();
+    if (!result.ok) {
+      alert(result.error);
+      return;
+    }
+    setSteps(result.steps);
+    setCodeView(false);
   }
 
   async function handleSave() {
     if (!name.trim()) return;
+
+    let activeSteps = steps;
+    if (codeView) {
+      const result = commitCodeText();
+      if (!result.ok) {
+        alert(result.error);
+        return;
+      }
+      activeSteps = result.steps;
+      setSteps(activeSteps);
+    }
+
     const now = Date.now();
 
     // Save endpointPath with host included by default when a spec origin is known,
@@ -173,7 +198,7 @@ export function ShortcutBuilder({ shortcut, onSave, onCancel }: Props) {
       if (spec?.url) specOrigin = new URL(spec.url).origin;
     } catch { /* ignore invalid spec URL */ }
 
-    const stepsWithHost: ShortcutStep[] = steps.map((s) => {
+    const stepsWithHost: ShortcutStep[] = activeSteps.map((s) => {
       if (s.stepType === 'sleep' || !s.endpointPath) return s;
       if (/^https?:\/\//i.test(s.endpointPath)) return s;
       if (!specOrigin) return s;

@@ -14,7 +14,7 @@ export default defineConfig({
   manifest: {
     name: 'Swagger Flow',
     description: 'Shortcut & flow automation for Swagger UI',
-    permissions: ['storage', 'activeTab', 'tabs', 'sidePanel', 'cookies'],
+    permissions: ['storage', 'activeTab', 'tabs', 'sidePanel', 'cookies', 'alarms'],
     host_permissions: ['<all_urls>'],
     icons: {
       16: 'icon-16.png',

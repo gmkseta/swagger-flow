@@ -11,6 +11,33 @@ import {
   handleAuthGetStatus,
 } from '../src/auth/handlers';
 import { initEncryptionKey, clearEncryptionKey, isEncryptionReady } from '../src/utils/crypto';
+import { checkForUpdate, type UpdateState } from '../src/utils/version-check';
+import { provider as updateProvider } from '#update-provider';
+
+const UPDATE_ALARM_NAME = 'sf-version-check';
+const UPDATE_CHECK_INTERVAL_MIN = 360; // 6 hours
+const UPDATE_STATE_KEY = '_update_state';
+
+async function readUpdateState(): Promise<UpdateState | null> {
+  const res = await chrome.storage.local.get(UPDATE_STATE_KEY);
+  return (res[UPDATE_STATE_KEY] as UpdateState | undefined) ?? null;
+}
+
+async function writeUpdateState(state: UpdateState): Promise<void> {
+  await chrome.storage.local.set({ [UPDATE_STATE_KEY]: state });
+}
+
+async function runUpdateCheck(): Promise<UpdateState> {
+  const current = chrome.runtime.getManifest().version;
+  const next = await checkForUpdate(current, updateProvider);
+  const prev = await readUpdateState();
+  // Preserve dismissal across checks unless a newer version arrived.
+  if (prev?.dismissedVersion && next.latest && next.latest.version === prev.dismissedVersion) {
+    next.dismissedVersion = prev.dismissedVersion;
+  }
+  await writeUpdateState(next);
+  return next;
+}
 
 const cryptoDeps = { initEncryptionKey, clearEncryptionKey, isEncryptionReady };
 
@@ -28,6 +55,17 @@ export default defineBackground(() => {
 
   // Restore encryption key from cached user on startup
   restoreEncryptionOnStartup(authProvider, cryptoDeps);
+
+  // Periodic version check against the wiki-hosted release manifest.
+  chrome.alarms.create(UPDATE_ALARM_NAME, {
+    periodInMinutes: UPDATE_CHECK_INTERVAL_MIN,
+    when: Date.now() + 5_000,
+  });
+  chrome.alarms.onAlarm.addListener((alarm) => {
+    if (alarm.name === UPDATE_ALARM_NAME) {
+      runUpdateCheck().catch(() => { /* swallow — surfaced via stored state */ });
+    }
+  });
 
   onMessage((msg: Message, sender, sendResponse) => {
     switch (msg.type) {
@@ -78,6 +116,26 @@ export default defineBackground(() => {
       }
 
       case 'SWAGGER_REQUEST_CAPTURED': {
+        // Layer 2: Background-level validation — skip if tab is not a known Swagger tab
+        // or if the request host doesn't match the swagger page/spec origin.
+        const captureTabId = sender.tab?.id;
+        if (!captureTabId || !swaggerTabs.has(captureTabId)) return;
+        const tabInfo = swaggerTabs.get(captureTabId)!;
+        try {
+          const reqOrigin = new URL(msg.payload.request.url).origin;
+          const allowedOrigins = new Set<string>();
+          try { allowedOrigins.add(new URL(tabInfo.url).origin); } catch { /* ignore */ }
+          if (tabInfo.specUrl) {
+            try { allowedOrigins.add(new URL(tabInfo.specUrl, tabInfo.url).origin); } catch { /* ignore */ }
+          }
+          if (tabInfo.specUrls) {
+            for (const s of tabInfo.specUrls) {
+              try { allowedOrigins.add(new URL(s.url, tabInfo.url).origin); } catch { /* ignore */ }
+            }
+          }
+          if (!allowedOrigins.has(reqOrigin)) return;
+        } catch { /* unparseable URL — allow through */ }
+
         // Save intercepted Swagger UI request to history
         const { request, response, timestamp } = msg.payload;
         let pathname = '';
@@ -132,6 +190,31 @@ export default defineBackground(() => {
 
       case 'AUTH_GET_STATUS': {
         handleAuthGetStatus(authProvider, cryptoDeps).then(sendResponse);
+        return true;
+      }
+
+      // --- Version check ---
+
+      case 'GET_UPDATE_INFO': {
+        readUpdateState().then(sendResponse);
+        return true;
+      }
+
+      case 'TRIGGER_UPDATE_CHECK': {
+        runUpdateCheck().then(sendResponse).catch((err) =>
+          sendResponse({ status: 'error', current: chrome.runtime.getManifest().version, errorMessage: err?.message ?? 'unknown' }),
+        );
+        return true;
+      }
+
+      case 'DISMISS_UPDATE': {
+        const dismissedVersion = (msg.payload as { version?: string } | undefined)?.version;
+        readUpdateState().then(async (state) => {
+          if (state) {
+            await writeUpdateState({ ...state, dismissedVersion });
+          }
+          sendResponse({ ok: true });
+        });
         return true;
       }
     }

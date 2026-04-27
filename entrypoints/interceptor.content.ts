@@ -16,6 +16,19 @@ export default defineContentScript({
     const SKIP_TRACKING = /\/ins\/\d+\/|\/collect\?|\/analytics|\/beacon|\/telemetry|\/log-event|\/track\b|google-analytics\.com|googletagmanager\.com|sentry\.io|hotjar\.com|clarity\.ms|amplitude\.com|mixpanel\.com|segment\.(com|io)|datadoghq\.|newrelic\.com/i;
     const SKIP_ERROR_REPORTING = /\/(?:jserrors|events)\/\d+\/[a-z0-9]+(?:[/?#]|$)/i;
 
+    // Layer 1: Only capture on confirmed Swagger UI pages.
+    // swaggerOrigins is null until content.ts signals detection via postMessage.
+    // Once set, it contains the allowed origins (spec host + page host).
+    let swaggerOrigins: Set<string> | null = null;
+
+    window.addEventListener('message', (event) => {
+      if (event.source !== window || event.data?.type !== '__SWAGGER_FLOW_PAGE_DETECTED__') return;
+      const origins: string[] = event.data.origins;
+      if (Array.isArray(origins) && origins.length > 0) {
+        swaggerOrigins = new Set(origins);
+      }
+    });
+
     // Track Execute button clicks for GET request capture
     let executeClicked = false;
     let executeTimer: ReturnType<typeof setTimeout> | null = null;
@@ -40,6 +53,9 @@ export default defineContentScript({
     );
 
     function shouldCapture(method: string, url: string): boolean {
+      // Layer 1: Not a Swagger page yet — skip everything
+      if (swaggerOrigins === null) return false;
+
       // Skip static resources and extension URLs
       if (SKIP_EXT.test(url) || url.startsWith('chrome-extension://') || url.startsWith('data:') || url.startsWith('blob:')) {
         return false;
@@ -50,6 +66,15 @@ export default defineContentScript({
       if (SKIP_TRACKING.test(url)) return false;
       // Skip client-side error/event reporting endpoints that pollute history
       if (SKIP_ERROR_REPORTING.test(url)) return false;
+
+      // Layer 1 host check: request must target the swagger spec host or the page's own host
+      try {
+        const reqOrigin = new URL(url).origin;
+        if (!swaggerOrigins.has(reqOrigin)) return false;
+      } catch {
+        // Relative or unparseable URL — let it through (same-origin by nature)
+      }
+
       // POST, PUT, PATCH, DELETE = always capture (user-initiated API calls)
       if (method !== 'GET' && method !== 'HEAD' && method !== 'OPTIONS') {
         return true;

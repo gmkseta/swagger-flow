@@ -1,6 +1,6 @@
 {
   "name": "swagger-flow",
-  "version": "0.1.0",
+  "version": "0.0.1",
   "description": "Swagger UI shortcut & flow automation Chrome extension",
   "private": true,
   "type": "module",
@@ -12,7 +12,9 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:e2e": "playwright test",
-    "test:all": "vitest run && playwright test"
+    "test:all": "vitest run && playwright test",
+    "release": "bash scripts/release.sh",
+    "release:dry": "bash scripts/release.sh --dry-run"
   },
   "dependencies": {
     "dexie": "^4.0.11",

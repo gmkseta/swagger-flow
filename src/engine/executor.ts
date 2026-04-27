@@ -5,6 +5,7 @@ import type { Shortcut, ShortcutStep, StepResult, ExecutionHistory } from '../db
 import { interpolate, interpolateObject, type InterpolationContext } from '../utils/template';
 import { resolvePath } from '../utils/jsonpath';
 import { sendMessage } from '../utils/messaging';
+import { evaluateAssertions, assertionFailureSummary } from '../utils/assertions';
 
 export type StepCallback = (stepIndex: number, result: StepResult) => void;
 
@@ -194,6 +195,18 @@ export async function executeShortcut(
           if (failedExtracts.length > 0) {
             stepResult.status = 'failed';
             stepResult.error = `Extraction failed: ${failedExtracts.join(', ')}`;
+          }
+        }
+
+        // Evaluate assertions
+        if (step.assertions && step.assertions.length > 0) {
+          const assertionResults = evaluateAssertions(response.body, step.assertions, ctx);
+          stepResult.assertionResults = assertionResults;
+          const { errorMessage } = assertionFailureSummary(assertionResults);
+          if (errorMessage) {
+            stepResult.status = 'failed';
+            const prefix = `Assertion failed: ${errorMessage}`;
+            stepResult.error = stepResult.error ? `${stepResult.error}; ${prefix}` : prefix;
           }
         }
 

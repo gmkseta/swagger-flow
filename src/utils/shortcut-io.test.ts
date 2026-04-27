@@ -120,6 +120,63 @@ describe('parseImportData', () => {
       expect(result.shortcuts[0].steps[0].extractors).toEqual([{ name: 'userId', path: 'data.id' }]);
     });
 
+    it('parses valid assertions', () => {
+      const json = JSON.stringify({
+        name: 'with-assertions',
+        steps: [{
+          endpointMethod: 'GET',
+          endpointPath: '/test',
+          parameterBindings: {},
+          extractors: [],
+          assertions: [
+            { name: 'has count', path: 'today.count', op: 'exists' },
+            { path: 'income', op: 'gt', value: 0, severity: 'warn' },
+          ],
+        }],
+      });
+      const result = parseImportData(json);
+      expect(result.success).toBe(true);
+      const step = result.shortcuts[0].steps[0];
+      expect(step.assertions).toHaveLength(2);
+      expect(step.assertions![0]).toEqual({ name: 'has count', path: 'today.count', op: 'exists' });
+      expect(step.assertions![1]).toEqual({ path: 'income', op: 'gt', value: 0, severity: 'warn' });
+    });
+
+    it('skips invalid assertions with warning', () => {
+      const json = JSON.stringify({
+        name: 'bad-assertions',
+        steps: [{
+          endpointMethod: 'GET',
+          endpointPath: '/test',
+          parameterBindings: {},
+          extractors: [],
+          assertions: [
+            { path: 'good', op: 'exists' },
+            { path: 'bad', op: 'unknownOp' },
+            { op: 'exists' },
+          ],
+        }],
+      });
+      const result = parseImportData(json);
+      expect(result.success).toBe(true);
+      expect(result.shortcuts[0].steps[0].assertions).toHaveLength(1);
+      expect(result.warnings.some((w) => w.includes('invalid assertion'))).toBe(true);
+    });
+
+    it('omits assertions field when none valid', () => {
+      const json = JSON.stringify({
+        name: 'no-assertions',
+        steps: [{
+          endpointMethod: 'GET',
+          endpointPath: '/test',
+          parameterBindings: {},
+          extractors: [],
+        }],
+      });
+      const result = parseImportData(json);
+      expect(result.shortcuts[0].steps[0].assertions).toBeUndefined();
+    });
+
     it('normalizes method to uppercase', () => {
       const json = JSON.stringify({
         version: 1,

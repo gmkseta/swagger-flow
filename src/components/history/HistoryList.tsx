@@ -468,6 +468,29 @@ export function HistoryList({ onNavigateToShortcut }: Props) {
                     ))}
                   </div>
                 )}
+              {step.assertionResults && step.assertionResults.length > 0 && (
+                <div class="bg-white rounded p-1.5 font-mono text-[10px] space-y-0.5 mt-1">
+                  {step.assertionResults.map((a, ai) => {
+                    const icon = a.passed ? '✓' : a.severity === 'warn' ? '⚠' : '✗';
+                    const color = a.passed
+                      ? 'text-green-600'
+                      : a.severity === 'warn'
+                      ? 'text-amber-600'
+                      : 'text-red-600';
+                    const opLabel = a.op + (a.expected !== undefined ? ` ${JSON.stringify(a.expected)}` : '');
+                    return (
+                      <div key={ai} class="flex gap-1">
+                        <span class={`${color} font-bold`}>{icon}</span>
+                        <span class="text-indigo-600">{a.name || a.path}</span>
+                        <span class="text-gray-500">{opLabel}</span>
+                        {!a.passed && a.message && (
+                          <span class={color}>— {a.message}</span>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
               {step.request?.body && (
                 <details class="mt-1">
                   <summary class="text-[10px] text-gray-500 cursor-pointer">
