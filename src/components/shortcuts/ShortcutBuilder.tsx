@@ -2,6 +2,7 @@ import { useState, useEffect } from 'preact/hooks';
 import { encDb, type Shortcut, type ShortcutStep, type ExecutionHistory } from '../../db';
 import { useSpec } from '../../hooks/useSpec';
 import { StepCard } from './StepCard';
+import { TemplateHelp } from './TemplateHelp';
 import { historyToShortcut } from '../../utils/shortcut-convert';
 import { offsetImportedSteps, reindexMutatedSteps } from '../../utils/step-references';
 
@@ -254,16 +255,19 @@ export function ShortcutBuilder({ shortcut, onSave, onCancel }: Props) {
       </div>
 
       {/* Toggle */}
-      <div class="flex items-center justify-between mb-2">
+      <div class="flex items-center justify-between mb-2 gap-2">
         <span class="text-xs font-medium text-gray-500">
           Steps ({steps.length})
         </span>
-        <button
-          onClick={toggleCodeView}
-          class="text-xs text-indigo-600 hover:text-indigo-800"
-        >
-          {codeView ? '← Form View' : 'Code View →'}
-        </button>
+        <div class="flex items-center gap-2">
+          <TemplateHelp variant="header" />
+          <button
+            onClick={toggleCodeView}
+            class="text-xs text-indigo-600 hover:text-indigo-800"
+          >
+            {codeView ? '← Form View' : 'Code View →'}
+          </button>
+        </div>
       </div>
 
       {/* Steps */}

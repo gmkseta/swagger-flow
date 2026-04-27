@@ -37,26 +37,35 @@ function AppContent() {
     handleTabChange('shortcuts');
   }
 
+  // Keep every tab's component mounted and toggle visibility via CSS so that
+  // unsaved editor state, scroll position, etc. persist across tab switches.
+  // The `hidden` attribute removes the panel from layout without unmounting.
   return (
     <Shell>
       <div class="flex-1 overflow-y-auto p-3">
-        {activeTab === 'shortcuts' && (
+        <div hidden={activeTab !== 'shortcuts'}>
           <ShortcutList
             prefillShortcut={prefillShortcut}
             onPrefillConsumed={() => setPrefillShortcut(null)}
           />
-        )}
-        {activeTab === 'auth' && <AuthManager />}
-        {activeTab === 'env' && <EnvEditor />}
-        {activeTab === 'history' && (
+        </div>
+        <div hidden={activeTab !== 'auth'}>
+          <AuthManager />
+        </div>
+        <div hidden={activeTab !== 'env'}>
+          <EnvEditor />
+        </div>
+        <div hidden={activeTab !== 'history'}>
           <HistoryList onNavigateToShortcut={handleNavigateToShortcut} />
-        )}
-        {!['shortcuts', 'auth', 'env', 'history'].includes(activeTab) && (() => {
-          const plugin = plugins.find((p) => p.id === activeTab);
-          if (!plugin) return null;
+        </div>
+        {plugins.map((plugin) => {
           const PluginComponent = plugin.component;
-          return <PluginComponent />;
-        })()}
+          return (
+            <div key={plugin.id} hidden={activeTab !== plugin.id}>
+              <PluginComponent />
+            </div>
+          );
+        })}
       </div>
       <TabBar tabs={tabs} active={activeTab} onChange={handleTabChange} />
     </Shell>
