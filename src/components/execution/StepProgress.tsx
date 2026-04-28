@@ -1,5 +1,6 @@
 import { useState } from 'preact/hooks';
 import type { ShortcutStep, StepResult } from '../../db';
+import { toCurl } from '../../utils/curl';
 
 interface Props {
   step: ShortcutStep;
@@ -166,7 +167,19 @@ export function StepProgress({ step, result, index, canRetry, onRetry, canRunSin
           {/* Request */}
           {result.request && (
             <div>
-              <span class="text-[10px] font-medium text-gray-500 uppercase">Request</span>
+              <div class="flex items-center justify-between">
+                <span class="text-[10px] font-medium text-gray-500 uppercase">Request</span>
+                <button
+                  onClick={() => {
+                    if (!result.request) return;
+                    navigator.clipboard.writeText(toCurl(result.request)).catch(() => { /* ignore */ });
+                  }}
+                  class="text-[10px] text-indigo-600 hover:text-indigo-800"
+                  title="Copy as cURL"
+                >
+                  Copy as cURL
+                </button>
+              </div>
               <div class="bg-white rounded p-2 mt-1 font-mono text-[11px] overflow-x-auto">
                 <div class="text-indigo-600">{result.request.method} {result.request.url}</div>
                 {result.request.body && (

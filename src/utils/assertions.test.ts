@@ -182,6 +182,42 @@ describe('evaluateAssertion', () => {
       expect(r.passed).toBe(true);
       expect(r.path).toBe('name');
     });
+
+    it('can assert against request and response headers', () => {
+      const runtime = {
+        request: {
+          headers: { Authorization: 'Bearer abc' },
+          body: '{"data":{"id":"REQ-1"}}',
+        },
+        response: {
+          headers: { 'x-request-id': 'resp-123' },
+          body: { ok: true },
+        },
+      };
+
+      const reqHeader = evaluateAssertion(
+        { ok: true },
+        { path: 'request.headers.authorization', op: 'equals', value: 'Bearer abc' },
+        ctx,
+        runtime,
+      );
+      const resHeader = evaluateAssertion(
+        { ok: true },
+        { path: 'response.headers.x-request-id', op: 'equals', value: 'resp-123' },
+        ctx,
+        runtime,
+      );
+      const reqBody = evaluateAssertion(
+        { ok: true },
+        { path: 'request.body.data.id', op: 'equals', value: 'REQ-1' },
+        ctx,
+        runtime,
+      );
+
+      expect(reqHeader.passed).toBe(true);
+      expect(resHeader.passed).toBe(true);
+      expect(reqBody.passed).toBe(true);
+    });
   });
 });
 

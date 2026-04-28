@@ -1,11 +1,12 @@
 // Template interpolation engine
-// Resolves: {{env.VAR}}, {{step.1.data.id}}, {{$uuid}}, {{$timestamp}}, etc.
+// Resolves: {{env.VAR}}, {{step.1.data.id}}, {{step.1.response.headers.x-request-id}},
+// {{$uuid}}, {{$timestamp}}, etc.
 
 import { resolvePath } from './jsonpath';
 
 export interface InterpolationContext {
   env: Record<string, string>;
-  steps: Record<number, Record<string, any>>; // step order -> extracted values
+  steps: Record<number, Record<string, any>>; // step order -> extracted values + request/response context
   auth?: { type: string; headerName: string; headerValue: string };
 }
 
@@ -83,7 +84,7 @@ function resolveExpression(trimmed: string, ctx: InterpolationContext): any {
     return ctx.env[key];
   }
 
-  // Step output: {{step.1.data.id}}
+  // Step output: {{step.1.data.id}} or {{step.1.response.headers.x-request-id}}
   if (trimmed.startsWith('step.')) {
     const rest = trimmed.slice(5);
     const dotIdx = rest.indexOf('.');

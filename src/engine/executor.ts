@@ -6,6 +6,7 @@ import { interpolate, interpolateObject, type InterpolationContext } from '../ut
 import { resolvePath } from '../utils/jsonpath';
 import { sendMessage } from '../utils/messaging';
 import { evaluateAssertions, assertionFailureSummary } from '../utils/assertions';
+import { buildStepTemplateData, resolveStepRuntimePath } from '../utils/step-runtime';
 
 export type StepCallback = (stepIndex: number, result: StepResult) => void;
 
@@ -34,9 +35,7 @@ export async function executeShortcut(
   // Restore previous results if retrying from a specific step
   for (let i = 0; i < startFromStep && i < previousResults.length; i++) {
     results.push(previousResults[i]);
-    if (previousResults[i].extractedValues) {
-      extractedByStep[i + 1] = previousResults[i].extractedValues!;
-    }
+    extractedByStep[previousResults[i].order] = buildStepTemplateData(previousResults[i]);
   }
 
   for (let i = startFromStep; i < shortcut.steps.length; i++) {
@@ -177,13 +176,15 @@ export async function executeShortcut(
         stepResult.response = response;
 
         // Extract values
-        if (step.extractors.length > 0 && response.body) {
+        if (step.extractors.length > 0) {
           const extracted: Record<string, any> = {};
           const failedExtracts: string[] = [];
           for (const ext of step.extractors) {
-            // Interpolate template variables in path (e.g. orders[?open_order_id=={{step.1.doboOrderId}}])
+            // Interpolate template variables in path
+            // e.g. orders[?open_order_id=={{step.1.doboOrderId}}]
+            // or response.headers.x-request-id / request.body.data.id
             const resolvedPath = interpolate(ext.path, ctx);
-            const val = resolvePath(response.body, resolvedPath);
+            const val = resolveStepRuntimePath(response.body, resolvedPath, stepResult);
             if (val !== undefined) {
               extracted[ext.name] = val;
             } else {
@@ -191,16 +192,17 @@ export async function executeShortcut(
             }
           }
           stepResult.extractedValues = extracted;
-          extractedByStep[step.order] = extracted;
           if (failedExtracts.length > 0) {
             stepResult.status = 'failed';
             stepResult.error = `Extraction failed: ${failedExtracts.join(', ')}`;
           }
         }
 
+        extractedByStep[step.order] = buildStepTemplateData(stepResult);
+
         // Evaluate assertions
         if (step.assertions && step.assertions.length > 0) {
-          const assertionResults = evaluateAssertions(response.body, step.assertions, ctx);
+          const assertionResults = evaluateAssertions(response.body, step.assertions, ctx, stepResult);
           stepResult.assertionResults = assertionResults;
           const { errorMessage } = assertionFailureSummary(assertionResults);
           if (errorMessage) {
@@ -217,6 +219,8 @@ export async function executeShortcut(
         } else if (stepResult.status !== 'failed') {
           stepResult.status = 'completed';
         }
+
+        extractedByStep[step.order] = buildStepTemplateData(stepResult);
       } catch (err: any) {
         stepResult.status = 'failed';
         stepResult.error = err.message || 'Unknown error';

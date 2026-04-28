@@ -2,11 +2,15 @@
 // Reuses jsonpath path syntax + template interpolation.
 
 import type { Assertion, AssertionResult } from '../db';
-import { resolvePath } from './jsonpath';
 import { interpolate, type InterpolationContext } from './template';
+import { resolveStepRuntimePath } from './step-runtime';
 
 function deepEqual(a: unknown, b: unknown): boolean {
   if (a === b) return true;
+  // Coerce string<->number for equals so URL-extracted ids can be compared
+  // against numeric response ids (e.g., 5722293 vs "5722293" from a template).
+  if (typeof a === 'number' && typeof b === 'string') return String(a) === b;
+  if (typeof a === 'string' && typeof b === 'number') return a === String(b);
   if (typeof a !== typeof b) return false;
   if (a === null || b === null) return false;
   if (typeof a !== 'object') return false;
@@ -35,11 +39,18 @@ export function evaluateAssertion(
   responseBody: unknown,
   assertion: Assertion,
   ctx: InterpolationContext,
+  stepResult?: {
+    request?: { headers: Record<string, string>; body?: string };
+    response?: { headers: Record<string, string>; body: unknown };
+  },
 ): AssertionResult {
   const resolvedPath = interpolate(assertion.path, ctx);
-  const actual = resolvePath(responseBody, resolvedPath);
+  const actual = resolveStepRuntimePath(responseBody, resolvedPath, stepResult);
   const severity = assertion.severity ?? 'error';
-  const expected = assertion.value;
+  // Interpolate string-typed `value`s so {{FLEXER_ID}} / {{step.1.foo}} work
+  // for equals/notEquals/contains/matches comparisons. Non-string values pass through.
+  const expected =
+    typeof assertion.value === 'string' ? interpolate(assertion.value, ctx) : assertion.value;
 
   let passed = false;
   let message: string | undefined;
@@ -126,9 +137,13 @@ export function evaluateAssertions(
   responseBody: unknown,
   assertions: Assertion[] | undefined,
   ctx: InterpolationContext,
+  stepResult?: {
+    request?: { headers: Record<string, string>; body?: string };
+    response?: { headers: Record<string, string>; body: unknown };
+  },
 ): AssertionResult[] {
   if (!assertions || assertions.length === 0) return [];
-  return assertions.map((a) => evaluateAssertion(responseBody, a, ctx));
+  return assertions.map((a) => evaluateAssertion(responseBody, a, ctx, stepResult));
 }
 
 export function assertionFailureSummary(results: AssertionResult[]): {

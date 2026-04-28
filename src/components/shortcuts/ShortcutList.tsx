@@ -30,6 +30,8 @@ export function ShortcutList({ prefillShortcut, onPrefillConsumed }: Props) {
   const [currentDirectory, setCurrentDirectory] = useState<string | null>(null);
   const [showDirectoryCreator, setShowDirectoryCreator] = useState(false);
   const [newDirectoryName, setNewDirectoryName] = useState('');
+  const [draggedShortcutIds, setDraggedShortcutIds] = useState<number[]>([]);
+  const [dragTargetDirectory, setDragTargetDirectory] = useState<string | '__root__' | null>(null);
 
   // Export/Import state
   const [selectMode, setSelectMode] = useState(false);
@@ -118,6 +120,66 @@ export function ShortcutList({ prefillShortcut, onPrefillConsumed }: Props) {
     } as Shortcut);
     await loadData();
     toast('success', `"${shortcut.name}" duplicated.`);
+  }
+
+  async function moveShortcutsToDirectory(ids: number[], nextDirectory: string | null) {
+    if (ids.length === 0) return;
+
+    const normalizedDirectory = normalizeDirectoryName(nextDirectory || '');
+    const now = Date.now();
+    if (normalizedDirectory) {
+      await encDb.directories.ensure(normalizedDirectory);
+    }
+
+    for (const id of ids) {
+      await encDb.shortcuts.update(id, {
+        directory: normalizedDirectory || undefined,
+        updatedAt: now,
+      });
+    }
+
+    await loadData();
+    toast(
+      'success',
+      normalizedDirectory
+        ? `Moved ${ids.length} shortcut(s) to "${normalizedDirectory}".`
+        : `Moved ${ids.length} shortcut(s) to root.`,
+    );
+  }
+
+  function getDragIds(shortcut: Shortcut) {
+    if (!shortcut.id) return [];
+    if (selectMode && selected.has(shortcut.id)) {
+      return Array.from(selected);
+    }
+    return [shortcut.id];
+  }
+
+  function handleDragStart(e: DragEvent, shortcut: Shortcut) {
+    const ids = getDragIds(shortcut);
+    if (ids.length === 0) return;
+
+    setDraggedShortcutIds(ids);
+    e.dataTransfer?.setData('text/plain', ids.join(','));
+    if (e.dataTransfer) {
+      e.dataTransfer.effectAllowed = 'move';
+    }
+  }
+
+  function handleDragEnd() {
+    setDraggedShortcutIds([]);
+    setDragTargetDirectory(null);
+  }
+
+  async function handleDropToDirectory(nextDirectory: string | null) {
+    const ids = draggedShortcutIds.length > 0 ? draggedShortcutIds : Array.from(selected);
+    if (ids.length === 0) return;
+
+    await moveShortcutsToDirectory(ids, nextDirectory);
+    setDraggedShortcutIds([]);
+    setDragTargetDirectory(null);
+    setSelected(new Set());
+    setSelectMode(false);
   }
 
   async function handleCreateDirectory() {
@@ -299,7 +361,20 @@ export function ShortcutList({ prefillShortcut, onPrefillConsumed }: Props) {
             <div class="flex items-center gap-2">
               <button
                 onClick={() => changeDirectory(null)}
-                class="text-xs text-gray-500 hover:text-indigo-600 transition-colors"
+                onDragOver={(e) => {
+                  e.preventDefault();
+                  setDragTargetDirectory('__root__');
+                }}
+                onDragLeave={() => setDragTargetDirectory((prev) => (prev === '__root__' ? null : prev))}
+                onDrop={async (e) => {
+                  e.preventDefault();
+                  await handleDropToDirectory(null);
+                }}
+                class={`text-xs transition-colors ${
+                  dragTargetDirectory === '__root__'
+                    ? 'text-indigo-700'
+                    : 'text-gray-500 hover:text-indigo-600'
+                }`}
               >
                 &larr; Root
               </button>
@@ -448,7 +523,20 @@ export function ShortcutList({ prefillShortcut, onPrefillConsumed }: Props) {
               <div
                 key={directory.name}
                 onClick={() => changeDirectory(directory.name)}
-                class="bg-white rounded-lg border border-gray-200 p-3 hover:border-indigo-300 transition-colors cursor-pointer"
+                onDragOver={(e) => {
+                  e.preventDefault();
+                  setDragTargetDirectory(directory.name);
+                }}
+                onDragLeave={() => setDragTargetDirectory((prev) => (prev === directory.name ? null : prev))}
+                onDrop={async (e) => {
+                  e.preventDefault();
+                  await handleDropToDirectory(directory.name);
+                }}
+                class={`bg-white rounded-lg border p-3 transition-colors cursor-pointer ${
+                  dragTargetDirectory === directory.name
+                    ? 'border-indigo-500 bg-indigo-50'
+                    : 'border-gray-200 hover:border-indigo-300'
+                }`}
               >
                 <div class="flex items-center justify-between gap-2">
                   <div class="min-w-0">
@@ -546,6 +634,9 @@ export function ShortcutList({ prefillShortcut, onPrefillConsumed }: Props) {
           {visibleShortcuts.map((shortcut) => (
             <div
               key={shortcut.id}
+              draggable={Boolean(shortcut.id)}
+              onDragStart={(e) => handleDragStart(e as unknown as DragEvent, shortcut)}
+              onDragEnd={handleDragEnd}
               class={`bg-white rounded-lg border p-3 transition-colors ${
                 selectMode && selected.has(shortcut.id!)
                   ? 'border-indigo-400 bg-indigo-50'
@@ -629,6 +720,16 @@ export function ShortcutList({ prefillShortcut, onPrefillConsumed }: Props) {
                       title="Duplicate"
                     >
                       &#128203;
+                    </button>
+                    <button
+                      draggable={Boolean(shortcut.id)}
+                      onDragStart={(e) => handleDragStart(e as unknown as DragEvent, shortcut)}
+                      onDragEnd={handleDragEnd}
+                      onClick={(e) => e.preventDefault()}
+                      class="text-gray-400 hover:text-indigo-600 p-1 cursor-grab active:cursor-grabbing"
+                      title="Drag to folder"
+                    >
+                      &#8597;
                     </button>
                     <button
                       onClick={() => handleDeleteShortcut(shortcut.id!)}

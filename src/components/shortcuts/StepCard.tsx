@@ -1,5 +1,23 @@
 import { useState } from 'preact/hooks';
-import type { ShortcutStep, Endpoint, Extractor, BindingSource } from '../../db';
+import type {
+  ShortcutStep,
+  Endpoint,
+  Extractor,
+  BindingSource,
+  Assertion,
+  AssertionOp,
+} from '../../db';
+
+const ASSERTION_OPS: { value: AssertionOp; label: string; needsValue: boolean }[] = [
+  { value: 'exists',    label: 'exists',     needsValue: false },
+  { value: 'notExists', label: 'notExists',  needsValue: false },
+  { value: 'equals',    label: '=',          needsValue: true  },
+  { value: 'notEquals', label: '≠',          needsValue: true  },
+  { value: 'contains',  label: 'contains',   needsValue: true  },
+  { value: 'gt',        label: '>',          needsValue: true  },
+  { value: 'lt',        label: '<',          needsValue: true  },
+  { value: 'matches',   label: 'matches /…/', needsValue: true  },
+];
 import { flattenPaths } from '../../utils/jsonpath';
 import { TemplateHelp } from './TemplateHelp';
 
@@ -85,6 +103,38 @@ export function StepCard({
 
   function removeExtractor(i: number) {
     onUpdate({ ...step, extractors: step.extractors.filter((_, j) => j !== i) });
+  }
+
+  function addAssertion() {
+    const next: Assertion = { path: '', op: 'exists' };
+    onUpdate({ ...step, assertions: [...(step.assertions ?? []), next] });
+  }
+
+  function updateAssertion(i: number, a: Assertion) {
+    const list = [...(step.assertions ?? [])];
+    list[i] = a;
+    onUpdate({ ...step, assertions: list });
+  }
+
+  function removeAssertion(i: number) {
+    const list = (step.assertions ?? []).filter((_, j) => j !== i);
+    onUpdate({ ...step, assertions: list.length > 0 ? list : undefined });
+  }
+
+  function parseAssertionValue(raw: string): unknown {
+    // Numbers stay as numbers, true/false/null parsed, anything else stays string.
+    if (raw === '') return '';
+    if (raw === 'true') return true;
+    if (raw === 'false') return false;
+    if (raw === 'null') return null;
+    if (/^-?\d+(\.\d+)?$/.test(raw)) return Number(raw);
+    return raw;
+  }
+
+  function stringifyAssertionValue(v: unknown): string {
+    if (v === undefined) return '';
+    if (typeof v === 'string') return v;
+    return JSON.stringify(v);
   }
 
   const isSleep = step.stepType === 'sleep';
@@ -442,7 +492,7 @@ export function StepCard({
           <div>
             <div class="flex items-center justify-between mb-1">
               <label class="text-[10px] font-medium text-gray-500 uppercase tracking-wide">
-                Extract from Response
+                Extract from Step Data
               </label>
               <button
                 onClick={addExtractor}
@@ -482,11 +532,15 @@ export function StepCard({
             ))}
             {step.extractors.length === 0 && !sampleResponse && (
               <div class="text-[10px] text-gray-400 bg-gray-50 rounded p-2">
-                <p class="mb-1">Extract values from the response to use in later steps.</p>
+                <p class="mb-1">Extract values from response body by default, or explicitly from request/response bodies and headers.</p>
                 <p class="font-mono text-gray-500">
                   Examples: <span class="text-indigo-500">token</span> &#8592; data.accessToken &nbsp;|&nbsp;
                   <span class="text-indigo-500">userId</span> &#8592; data.id &nbsp;|&nbsp;
-                  <span class="text-indigo-500">items</span> &#8592; data.items[0].name
+                  <span class="text-indigo-500">traceId</span> &#8592; response.headers.x-request-id
+                </p>
+                <p class="font-mono text-gray-500 mt-1">
+                  <span class="text-indigo-500">auth</span> &#8592; request.headers.authorization &nbsp;|&nbsp;
+                  <span class="text-indigo-500">pickupId</span> &#8592; request.body.data.id
                 </p>
               </div>
             )}
@@ -498,6 +552,110 @@ export function StepCard({
                   onUpdate({ ...step, extractors: [...step.extractors, { name, path }] });
                 }}
               />
+            )}
+          </div>
+
+          {/* Assertions */}
+          <div>
+            <div class="flex items-center justify-between mb-1">
+              <label class="text-[10px] font-medium text-gray-500 uppercase tracking-wide">
+                Assertions
+              </label>
+              <button
+                onClick={addAssertion}
+                class="text-indigo-600 hover:text-indigo-800 text-[10px]"
+              >
+                + Add
+              </button>
+            </div>
+            {(step.assertions ?? []).map((a, i) => {
+              const meta = ASSERTION_OPS.find((o) => o.value === a.op) ?? ASSERTION_OPS[0];
+              const isWarn = a.severity === 'warn';
+              return (
+                <div key={i} class="space-y-1 mb-1.5 border border-gray-200 rounded p-1.5 bg-gray-50/50">
+                  <div class="flex items-center gap-1.5">
+                    <input
+                      type="text"
+                      value={a.name ?? ''}
+                      onInput={(e) =>
+                        updateAssertion(i, { ...a, name: (e.target as HTMLInputElement).value || undefined })
+                      }
+                      placeholder="label (선택)"
+                      class="w-24 border border-gray-200 rounded px-2 py-1 text-[11px]"
+                    />
+                    <input
+                      type="text"
+                      value={a.path}
+                      onInput={(e) =>
+                        updateAssertion(i, { ...a, path: (e.target as HTMLInputElement).value })
+                      }
+                      placeholder="data.id"
+                      class="flex-1 border border-gray-200 rounded px-2 py-1 font-mono text-[11px]"
+                    />
+                    <button
+                      onClick={() => removeAssertion(i)}
+                      class="text-gray-400 hover:text-red-500"
+                      title="Remove"
+                    >
+                      ×
+                    </button>
+                  </div>
+                  <div class="flex items-center gap-1.5">
+                    <select
+                      value={a.op}
+                      onChange={(e) => {
+                        const nextOp = (e.target as HTMLSelectElement).value as AssertionOp;
+                        const next: Assertion = { ...a, op: nextOp };
+                        if (!ASSERTION_OPS.find((o) => o.value === nextOp)?.needsValue) {
+                          delete next.value;
+                        }
+                        updateAssertion(i, next);
+                      }}
+                      class="border border-gray-200 rounded px-1.5 py-1 text-[11px] bg-white"
+                    >
+                      {ASSERTION_OPS.map((op) => (
+                        <option value={op.value}>{op.label}</option>
+                      ))}
+                    </select>
+                    {meta.needsValue && (
+                      <input
+                        type="text"
+                        value={stringifyAssertionValue(a.value)}
+                        onInput={(e) =>
+                          updateAssertion(i, {
+                            ...a,
+                            value: parseAssertionValue((e.target as HTMLInputElement).value),
+                          })
+                        }
+                        placeholder="value"
+                        class="flex-1 border border-gray-200 rounded px-2 py-1 font-mono text-[11px]"
+                      />
+                    )}
+                    <label class={`text-[10px] flex items-center gap-1 px-1.5 py-1 rounded cursor-pointer select-none ${isWarn ? 'bg-amber-50 text-amber-700 border border-amber-200' : 'bg-red-50 text-red-700 border border-red-200'}`}>
+                      <input
+                        type="checkbox"
+                        class="w-3 h-3"
+                        checked={isWarn}
+                        onChange={(e) =>
+                          updateAssertion(i, {
+                            ...a,
+                            severity: (e.target as HTMLInputElement).checked ? 'warn' : 'error',
+                          })
+                        }
+                      />
+                      {isWarn ? 'warn' : 'error'}
+                    </label>
+                  </div>
+                </div>
+              );
+            })}
+            {(step.assertions ?? []).length === 0 && (
+              <div class="text-[10px] text-gray-400 bg-gray-50 rounded p-2">
+                기본은 응답 body 경로이고, <span class="font-mono">request.body.*</span>, <span class="font-mono">request.headers.*</span>,
+                <span class="font-mono">response.body.*</span>, <span class="font-mono">response.headers.*</span> 도 가능합니다.
+                {' '}<span class="font-mono">error</span> = 실패 시 step 실패 + flow 중단,
+                <span class="font-mono"> warn</span> = 기록만.
+              </div>
             )}
           </div>
 

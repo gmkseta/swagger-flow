@@ -3,6 +3,7 @@ import { encDb, type ExecutionHistory, type Shortcut } from '../../db';
 import { historyToShortcut } from '../../utils/shortcut-convert';
 import { useToast } from '../layout/Toast';
 import { ExecutionView } from '../execution/ExecutionView';
+import { toCurl } from '../../utils/curl';
 
 function formatStepForCopy(step: ExecutionHistory['steps'][number], index: number): string {
   const lines: string[] = [];
@@ -447,12 +448,24 @@ export function HistoryList({ onNavigateToShortcut }: Props) {
                     {step.response.status}
                   </span>
                 )}
+                {step.request && (
+                  <button
+                    onClick={() => {
+                      if (!step.request) return;
+                      navigator.clipboard.writeText(toCurl(step.request)).then(() => toast('success', `Step #${i + 1} curl copied`));
+                    }}
+                    class="ml-auto text-[10px] text-gray-400 hover:text-indigo-600 shrink-0"
+                    title="Copy as cURL"
+                  >
+                    cURL
+                  </button>
+                )}
                 <button
                   onClick={() => {
                     navigator.clipboard.writeText(formatStepForCopy(step, i)).then(() => toast('success', `Step #${i + 1} copied`));
                   }}
-                  class="ml-auto text-[10px] text-gray-400 hover:text-indigo-600 shrink-0"
-                  title="Copy this step"
+                  class={`text-[10px] text-gray-400 hover:text-indigo-600 shrink-0 ${step.request ? '' : 'ml-auto'}`}
+                  title="Copy this step (request + response)"
                 >
                   Copy
                 </button>

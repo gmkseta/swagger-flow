@@ -5,7 +5,19 @@ function makeCtx(overrides: Partial<InterpolationContext> = {}): InterpolationCo
   return {
     env: { BASE_URL: 'https://api.example.com', TOKEN: 'abc123' },
     steps: {
-      1: { id: 42, token: 'tok-xyz', data: { name: 'Alice', items: [{ id: 10 }] } },
+      1: {
+        id: 42,
+        token: 'tok-xyz',
+        data: { name: 'Alice', items: [{ id: 10 }] },
+        request: {
+          headers: { authorization: 'Bearer tok-xyz' },
+          body: { payload: { id: 'REQ-1' } },
+        },
+        response: {
+          headers: { 'x-request-id': 'resp-123' },
+          body: { data: { id: 'RES-1' } },
+        },
+      },
       2: { status: 200, result: 'ok' },
     },
     ...overrides,
@@ -42,6 +54,12 @@ describe('interpolate', () => {
 
     it('leaves unresolved step refs as-is', () => {
       expect(interpolate('{{step.99.nope}}', makeCtx())).toBe('{{step.99.nope}}');
+    });
+
+    it('resolves previous step request/response context', () => {
+      expect(interpolate('{{step.1.request.headers.authorization}}', makeCtx())).toBe('Bearer tok-xyz');
+      expect(interpolate('{{step.1.response.headers.x-request-id}}', makeCtx())).toBe('resp-123');
+      expect(interpolate('{{step.1.request.body.payload.id}}', makeCtx())).toBe('REQ-1');
     });
   });
 
