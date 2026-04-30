@@ -80,7 +80,30 @@ function TemplateHelpModal({
     preview = interpolate(playground, {
       env: {},
       steps: {
-        [stepIndex > 0 ? stepIndex : 1]: { data: { id: '<step-value>' } },
+        [stepIndex > 0 ? stepIndex : 1]: {
+          first: 'Jane',
+          last: 'Doe',
+          status: 200,
+          count: 12,
+          data: { id: '<step-value>' },
+          request: {
+            headers: {
+              authorization: 'Bearer <request-token>',
+              'x-client-id': 'client-123',
+            },
+            body: {
+              data: { id: '<request-body-id>' },
+            },
+          },
+          response: {
+            headers: {
+              'x-request-id': 'req-12345',
+            },
+            body: {
+              data: { id: '<response-body-id>' },
+            },
+          },
+        },
       },
     });
   } catch (e: any) {
@@ -144,7 +167,8 @@ function TemplateHelpModal({
             </pre>
           </div>
           <div class="text-[9px] text-gray-500">
-            Generators run live. <code>{`{{env.*}}`}</code> / <code>{`{{step.N.*}}`}</code> use dummy values here.
+            Generators run live. <code>{`{{env.*}}`}</code> / <code>{`{{step.N.*}}`}</code> use dummy request,
+            response, and extracted values here.
           </div>
         </div>
 
